@@ -1,23 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-sec="out">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Money Tracker</title>
-<meta name="theme-color" content="#1F6F5C">
+<meta name="theme-color" content="#9B3B2B">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
-:root{--bg:#EEF2EC;--surface:#FFFFFF;--ink:#14231F;--muted:#5D6F68;--line:#D3DCD5;--accent:#1F6F5C;--on-accent:#FFFFFF;--warn:#B3412B;--chip:#E1EAE3;
+:root{--h:8;--surface:#FFFFFF;--ink:#17201E;--muted:#5F6E6A;--warn:#B3412B;
+--bg:hsl(var(--h) 38% 94%);--top:hsl(var(--h) 60% 85%);--line:hsl(var(--h) 22% 84%);--chip:hsl(var(--h) 34% 89%);--accent:hsl(var(--h) 58% 34%);--on-accent:#FFFFFF;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1A17;--surface:#17251F;--ink:#E8F0EB;--muted:#93A79D;--line:#2A3D35;--accent:#4FB79C;--on-accent:#0B1713;--warn:#E8836C;--chip:#1F3129}}
-:root[data-theme="dark"]{--bg:#0F1A17;--surface:#17251F;--ink:#E8F0EB;--muted:#93A79D;--line:#2A3D35;--accent:#4FB79C;--on-accent:#0B1713;--warn:#E8836C;--chip:#1F3129}
+:root[data-sec="out"]{--h:8}
+:root[data-sec="in"]{--h:150}
+:root[data-sec="hist"]{--h:215}
+:root[data-sec="ana"]{--h:272}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--surface:hsl(var(--h) 18% 14%);--ink:#EDF0EE;--muted:#A3AFAB;--warn:#E8836C;--bg:hsl(var(--h) 24% 9%);--top:hsl(var(--h) 36% 17%);--line:hsl(var(--h) 16% 24%);--chip:hsl(var(--h) 18% 20%);--accent:hsl(var(--h) 62% 66%);--on-accent:#101514}}
+:root[data-theme="dark"]{--surface:hsl(var(--h) 18% 14%);--ink:#EDF0EE;--muted:#A3AFAB;--warn:#E8836C;--bg:hsl(var(--h) 24% 9%);--top:hsl(var(--h) 36% 17%);--line:hsl(var(--h) 16% 24%);--chip:hsl(var(--h) 18% 20%);--accent:hsl(var(--h) 62% 66%);--on-accent:#101514}
 *{box-sizing:border-box}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;background:linear-gradient(180deg,var(--top) 0,var(--bg) 280px),var(--bg);transition:background .25s;color:var(--ink);font:400 16px/1.45 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:460px;margin:0 auto;padding:20px 16px 110px}
-h1{font:800 26px/1.1 "Bricolage Grotesque",system-ui,sans-serif;margin:4px 0 2px}
+h1{font:800 28px/1.1 "Bricolage Grotesque",system-ui,sans-serif;margin:4px 0 2px;color:var(--accent)}
 .sub{color:var(--muted);margin:0 0 18px;font-size:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
 label,.lab{display:block;font-weight:600;font-size:14px;margin-bottom:8px}
@@ -109,6 +114,15 @@ nav button[aria-current="page"]{color:var(--accent);background:var(--chip)}
 .sum small{display:block;color:var(--muted);font-size:12.5px}
 .sum b{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:16px}
 span.cat{cursor:default}
+.panel{border:1.5px dashed var(--line);border-radius:14px;padding:14px;margin-top:10px}
+.swatches{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.swrow{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:34px;height:34px;border-radius:50%;border:3px solid var(--surface);outline:2px solid transparent;cursor:pointer;padding:0}
+.sw.on{outline-color:var(--ink)}
+#newCatColor{width:44px;height:36px;border:0;background:none;padding:0;cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.chip.addcat{border:1.5px dashed var(--accent);background:none;color:var(--accent);font-weight:600}
+.rm{border:0;background:rgba(255,255,255,.3);color:inherit;border-radius:50%;width:22px;height:22px;margin-left:6px;cursor:pointer;font-size:11px;padding:0}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -134,6 +148,15 @@ span.cat{cursor:default}
   <div class="lab" style="margin:10px 0 0">Category</div>
   <div class="chips" id="cats"></div>
   <p class="err" id="e-cat"></p>
+  <div class="panel hidden" id="catPanel">
+    <div class="lab">New category</div>
+    <input class="field" id="newCatName" placeholder="e.g. Pets, Gifts, Education" maxlength="20" autocomplete="off">
+    <div class="lab" style="margin-top:12px">Colour</div>
+    <div class="swatches"><span id="swatches" class="swrow"></span><input type="color" id="newCatColor" value="#B8860B" aria-label="Pick any colour"></div>
+    <div class="row2"><button class="btn ghost" id="catAdd" type="button">Add category</button><button class="btn ghost" id="catCancel" type="button">Close</button></div>
+    <p class="err" id="e-newcat"></p>
+    <div id="catManage"></div>
+  </div>
 </div>
 
 <div class="card">
@@ -263,10 +286,17 @@ span.cat{cursor:default}
 
 <script>
 const $=s=>document.querySelector(s);
-const CATS=[['Food','#E0763A'],['Transport','#3F7FBF'],['Groceries','#4FA14F'],['Bills','#8A64C2'],['Shopping','#D8528A'],['Health','#D14B4B'],['Other','#7B8B84']];
+const BASE_CATS=[['Food','#E0763A'],['Transport','#3F7FBF'],['Groceries','#4FA14F'],['Bills','#8A64C2'],['Shopping','#D8528A'],['Health','#D14B4B'],['Other','#7B8B84']];
 const INC=['Money In','#17B6C8'];
-const HCATS=[...CATS,INC];
-const CC=Object.fromEntries(HCATS);
+const CUSTOM_KEY='moneytracker.cats.v1';
+let custom=[]; try{ custom=JSON.parse(localStorage.getItem(CUSTOM_KEY)||'[]').filter(c=>c&&c.n&&c.c); }catch(e){}
+function saveCustom(){ try{ localStorage.setItem(CUSTOM_KEY,JSON.stringify(custom)); }catch(e){} }
+let CATS,HCATS,CC;
+function rebuildCats(){
+  CATS=[...BASE_CATS.slice(0,-1),...custom.map(c=>[c.n,c.c]),BASE_CATS[BASE_CATS.length-1]];
+  HCATS=[...CATS,INC]; CC=Object.fromEntries(HCATS);
+}
+rebuildCats();
 const st={timeMode:'now',locMode:'gps',coords:null,cat:'',items:[]};
 const STORE_KEY='moneytracker.items.v1';
 try{ const raw=localStorage.getItem(STORE_KEY); if(raw) st.items=JSON.parse(raw).map(i=>({...i,when:new Date(i.when)})); }catch(e){}
@@ -316,10 +346,59 @@ function drawCats(){
     b.style.setProperty('--c',c); b.dataset.n=n;
     const d=document.createElement('i'); d.className='dot'; b.append(d,n); box.append(b);
   });
+  const a=document.createElement('button'); a.type='button'; a.className='chip addcat'; a.textContent='+ New category'; box.append(a);
 }
 $('#cats').addEventListener('click',e=>{
+  if(e.target.closest('.addcat')){ toggleCatPanel(); return; }
   const b=e.target.closest('.cat'); if(!b) return;
   st.cat=b.dataset.n; drawCats(); $('#e-cat').textContent='';
+});
+const SWATCHES=['#B8860B','#00897B','#8D5524','#607D8B','#C2185B','#558B2F','#5E35B1','#E64A19','#0277BD','#AD1457'];
+let newColor=SWATCHES[0];
+function drawSwatches(){
+  const box=$('#swatches'); box.innerHTML='';
+  SWATCHES.forEach(c=>{
+    const b=document.createElement('button'); b.type='button'; b.className='sw'+(c.toLowerCase()===newColor.toLowerCase()?' on':'');
+    b.style.background=c; b.setAttribute('aria-label','Colour '+c);
+    b.addEventListener('click',()=>{ newColor=c; $('#newCatColor').value=c; drawSwatches(); });
+    box.append(b);
+  });
+}
+function drawManage(){
+  const box=$('#catManage'); box.innerHTML='';
+  if(!custom.length) return;
+  const l=document.createElement('div'); l.className='lab'; l.style.marginTop='14px'; l.textContent='Your categories'; box.append(l);
+  const w=document.createElement('div'); w.className='chips'; w.style.marginTop='0';
+  custom.forEach((c,idx)=>{
+    const sp=document.createElement('span'); sp.className='chip cat on'; sp.style.setProperty('--c',c.c);
+    const d=document.createElement('i'); d.className='dot';
+    const x=document.createElement('button'); x.type='button'; x.className='rm'; x.textContent='✕'; x.setAttribute('aria-label','Remove '+c.n);
+    x.addEventListener('click',()=>removeCat(idx));
+    sp.append(d,c.n,x); w.append(sp);
+  });
+  box.append(w);
+}
+function toggleCatPanel(force){
+  const p=$('#catPanel'); const show=force!==undefined?force:p.classList.contains('hidden');
+  p.classList.toggle('hidden',!show); $('#e-newcat').textContent='';
+  if(show){ drawSwatches(); drawManage(); $('#newCatName').focus(); }
+}
+function removeCat(idx){
+  const c=custom[idx]; const used=st.items.filter(i=>i.cat===c.n).length;
+  if(used){ $('#e-newcat').textContent='“'+c.n+'” is used by '+used+' record'+(used>1?'s':'')+'. Delete those records first.'; return; }
+  custom.splice(idx,1); saveCustom(); if(st.cat===c.n) st.cat='';
+  rebuildCats(); drawCats(); drawManage(); renderHist(); renderAna();
+}
+$('#newCatColor').addEventListener('input',e=>{ newColor=e.target.value; drawSwatches(); });
+$('#catCancel').addEventListener('click',()=>toggleCatPanel(false));
+$('#catAdd').addEventListener('click',()=>{
+  const name=$('#newCatName').value.trim().replace(/\s+/g,' '), err=$('#e-newcat');
+  if(!name){ err.textContent='Type a category name.'; return; }
+  if(HCATS.some(([n])=>n.toLowerCase()===name.toLowerCase())){ err.textContent='That category already exists.'; return; }
+  custom.push({n:name,c:newColor}); saveCustom(); rebuildCats();
+  st.cat=name; drawCats(); $('#newCatName').value=''; $('#e-cat').textContent='';
+  toggleCatPanel(false); renderHist(); renderAna();
+  toast('Added category “'+name+'”');
 });
 drawCats();
 $('#what').addEventListener('input',()=>$('#e-what').textContent='');
@@ -328,15 +407,21 @@ $('#pay').addEventListener('change',()=>$('#e-pay').textContent='');
 $('#locate').addEventListener('click',()=>{
   const out=$('#locOut'),btn=$('#locate');
   if(!('geolocation' in navigator)){ out.textContent='Location isn’t available here. Switch to “Type it in”.'; return; }
-  btn.disabled=true; btn.textContent='Finding you…'; out.textContent='Waiting for your phone’s location…';
-  navigator.geolocation.getCurrentPosition(p=>{
+  btn.disabled=true; btn.textContent='Finding you…'; out.textContent='Looking for your position. This can take up to 30 seconds…';
+  const ok=p=>{
     st.coords={lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy)};
     out.textContent=`Got it: ${st.coords.lat.toFixed(5)}, ${st.coords.lng.toFixed(5)} (±${st.coords.acc} m)`;
     btn.disabled=false; btn.textContent='Refresh location'; $('#e-loc').textContent='';
-  },err=>{
+  };
+  const fail=err=>{
     st.coords=null; btn.disabled=false; btn.textContent='Try again';
-    out.textContent=err.code===1?'Permission denied. Allow location for this app in phone settings, or switch to “Type it in”.':'Couldn’t get a fix. Try again, or switch to “Type it in”.';
-  },{enableHighAccuracy:true,timeout:12000,maximumAge:30000});
+    const m={1:'Location permission is blocked for this app. Allow it in Android Settings, or switch to “Type it in”.',2:'Your device couldn’t work out its position. Turn on Location in quick settings and try again, or switch to “Type it in”.',3:'No signal found in time. Try near a window, or switch to “Type it in”.'};
+    out.textContent=(m[err.code]||'Couldn’t get a fix.')+' (code '+err.code+')';
+  };
+  navigator.geolocation.getCurrentPosition(ok,err=>{
+    if(err.code===1) return fail(err);
+    navigator.geolocation.getCurrentPosition(ok,fail,{enableHighAccuracy:false,timeout:20000,maximumAge:600000});
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
 });
 
 const hv={mode:'day',off:0,filter:null};
@@ -557,6 +642,9 @@ $('#nav').addEventListener('click',e=>{
   b.setAttribute('aria-current','page');
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hidden',v.id!=='v-'+b.dataset.v));
   window.scrollTo(0,0);
+  const SEC={record:['out','#9B3B2B'],in:['in','#1F7A4D'],history:['hist','#2F5DA8'],analysis:['ana','#6A45B0']}[b.dataset.v];
+  document.documentElement.dataset.sec=SEC[0];
+  document.querySelector('meta[name="theme-color"]').setAttribute('content',SEC[1]);
 });
 
 function toast(t){const el=$('#toast');el.classList.remove('act');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2200);}
